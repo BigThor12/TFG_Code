@@ -6,13 +6,25 @@ import os
 import re
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--train_files', type=str, default='D:\\uni\\TFG\\Datos\\meddoplace_train_set\\training_set\\brat\\meddoplace_brat_train', help='Ruta de los archivos de entrenamiento (.ann y .txt)')
-parser.add_argument('--out_files', type=str, default='D:\\uni\\TFG\\Datos\\Datos_tokenizados', help='Ruta donde se guardan los archivos tokenizados')
+parser.add_argument('--train_files', type=str, default='Datos\\meddoplace_train_set\\training_set\\brat\\meddoplace_brat_train\\', help='Ruta de los archivos de entrenamiento (.ann y .txt)')
+parser.add_argument('--out_files', type=str, default='Datos\\Datos_tokenizados\\', help='Ruta donde se guardan los archivos tokenizados')
 args = parser.parse_args()
+
+
+def procesamiento_de_ficheros(files_path,out_path):
+    #Recorremos todos los fichero ann y txt y los combinamos y tokenizamos. Por último creamos el archivo tokenizado y lo guardamos en out_path para su posterior uso
+
+    ann_files = sorted([files_path + x for x in os.listdir(files_path) if x.endswith('.ann')])
+    txt_files = sorted([files_path + x for x in os.listdir(files_path) if x.endswith('.txt')])
+
+    for ann_file, txt_file in zip(ann_files,txt_files):
+        file_key = txt_file.split("\\")[-1][:-4]
+        print(file_key)
+
+
 
 if __name__ == '__main__':
 
-    print(args.train_files)
-    print(args.out_files)
-    files_path = args.train_files
-    out_path = args.out_files
+    #print(args.train_files)
+    #print(args.out_files)
+    procesamiento_de_ficheros(args.train_files,args.out_files)
