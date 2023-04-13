@@ -10,6 +10,17 @@ parser.add_argument('--train_files', type=str, default='Datos\\meddoplace_train_
 parser.add_argument('--out_files', type=str, default='Datos\\Datos_tokenizados\\', help='Ruta donde se guardan los archivos tokenizados')
 args = parser.parse_args()
 
+def leer_archivo(txt_file):
+    #Función para leer el contenido de un archivo txt
+    with open(txt_file, 'r', encoding='utf-8') as txt:
+        text = txt.read()
+
+    return text
+
+def tokenizacion_del_archivo(ann_file,text_file,file_key = '-'):
+
+    return
+
 
 def procesamiento_de_ficheros(files_path,out_path):
     #Recorremos todos los fichero ann y txt y los combinamos y tokenizamos. Por último creamos el archivo tokenizado y lo guardamos en out_path para su posterior uso
@@ -19,8 +30,8 @@ def procesamiento_de_ficheros(files_path,out_path):
 
     for ann_file, txt_file in zip(ann_files,txt_files):
         file_key = txt_file.split("\\")[-1][:-4]
-        print(file_key)
-
+        #print(file_key)
+        conll_format_file = tokenizacion_del_archivo(ann_file,txt_file,file_key)
 
 
 if __name__ == '__main__':
