@@ -12,11 +12,12 @@ NEWLINE_TERM_REGEX = re.compile(r'(.*?\n)')
 
 from collections import namedtuple
 Token = namedtuple('Token','encID text lema pos file_key sent_id token_id start end labels')
-Annotation = namedtuple('Annotation'['tid','type','start','end','text'])
+Annotation = namedtuple('Annotation',['tid','type','start','end','text'])
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_files', type=str, default='Datos\\meddoplace_train_set\\training_set\\brat\\meddoplace_brat_train\\', help='Ruta de los archivos de entrenamiento (.ann y .txt)')
 parser.add_argument('--out_files', type=str, default='Datos\\Datos_tokenizados\\', help='Ruta donde se guardan los archivos tokenizados')
+parser.add_argument('--model', '-m', type=str, default='xlm-roberta-large', help='Path to/Name of huggingface model')
 args = parser.parse_args()
 
 def leer_archivo(txt_file):
@@ -97,7 +98,7 @@ def get_offsets(text,tokens,offset):
     found =  []
     try:
         for token in tokens:
-            if token[0] == '_':
+            if token[0] == '▁':
                 try:
                     s1, e1 = get_indice_del_token(text,token,offset)
                 except:
@@ -133,12 +134,12 @@ def transformar_texto_a_conll(tokenizer,text_content,file_key='-'):
     sentences = []
     for t in text_content.splitlines():
         t = sentencebreaks_to_newlines(t)
-        sentences.extend([s for s in NEWLINE_TERM_REGEX.split(1) if s])
+        sentences.extend([s for s in NEWLINE_TERM_REGEX.split(t) if s])
 
     content = [[Token('<DOCSTART>', '<DOCSTART>', '-x-', '-y-', file_key, -1, -1, 0, 0, [])]]
     last_offset = 0
     for s_id, s in enumerate(sentences):
-        enc = tokenizer.encode(t)
+        enc = tokenizer.encode(s)
         org_tokens = tokenizer.convert_ids_to_tokens(enc)
         if len(org_tokens) == 0:
             continue
@@ -164,7 +165,7 @@ def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
 
     new_content = transformar_texto_a_conll(tokenizer,text_content,file_key)
 
-    return
+    #return
 
 
 def procesamiento_de_ficheros(files_path,out_path,tokenizer):
@@ -176,12 +177,12 @@ def procesamiento_de_ficheros(files_path,out_path,tokenizer):
     for ann_file, txt_file in zip(ann_files,txt_files):
         file_key = txt_file.split("\\")[-1][:-4]
         #print(file_key)
-        conll_format_file = tokenizacion_del_archivo(ann_file,txt_file,file_key,tokenizer)
+        conll_format_file = tokenizacion_del_archivo(ann_file,txt_file,tokenizer,file_key)
 
 
 if __name__ == '__main__':
 
-    hf_tokenizer = AutoTokenizer.from_pretrained()
+    hf_tokenizer = AutoTokenizer.from_pretrained(args.model)
 
     #print(args.train_files)
     #print(args.out_files)
