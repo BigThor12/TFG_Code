@@ -137,7 +137,7 @@ def transformar_texto_a_conll(tokenizer,text_content,file_key='-'):
 
     content = [[Token('<DOCSTART>', '<DOCSTART>', '-x-', '-y-', file_key, -1, -1, 0, 0, [])]]
     last_offset = 0
-    for t_id, t in enumerate(sentences):
+    for s_id, s in enumerate(sentences):
         enc = tokenizer.encode(t)
         org_tokens = tokenizer.convert_ids_to_tokens(enc)
         if len(org_tokens) == 0:
@@ -146,6 +146,15 @@ def transformar_texto_a_conll(tokenizer,text_content,file_key='-'):
         if len(tokens) == 0:
             continue
         offsets = get_offsets(text_content, tokens, last_offset)
+
+        all_tokens = [(str(enc[t_id+1]), t, '-x-', '-y-', file_key, s_id, t_id, offsets[t_id][0], offsets[t_id][1]) for t_id,t in enumerate(tokens)]
+        tokens = [Token(*s, []) for s in all_tokens]
+        content.append(tokens)
+        last_offset = tokens[-1].end
+
+    return content
+
+
 
 def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
     #Esta función sirve para juntar todos los pasos en la tokenización del archivo
