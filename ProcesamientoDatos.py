@@ -27,12 +27,105 @@ def leer_archivo(txt_file):
     return text
 
 
+def get_indice_del_token(text,token,offset):
+    #Devuelve el el offset del texto para un token
+    l = len(token)
+
+    for s in range(offset, len(text)):
+        if text[s:s + l] == token:
+            return s, s + l
+
+        if s > offset + 100:
+            raise ValueError('Takes too long')
+
+        #
+        # There are some special tokens converted by XLM-R that have to be reconverted
+        #
+
+        # simple replacements
+        for org, rep, off in [('º', 'o', 0), ('ª', 'a', 0), ('´', '_', 0),
+                              ('µ', 'μ', 0), ('ü', 'ü', 0), ('ñ', 'ñ', 0),
+                              ('²', '2', 0), ('³', '3', 0), ('É', 'É', 0),
+                              ('ö', 'ö', 0), ('Í', 'Í', 0), ('Ó', 'Ó', 0),
+                              ('Ú', 'Ú', 0), ('´', '▁́', -1)]:
+            if rep in token and org in text[s:s + l]:
+                return s, s + l + off
+
+        # fixes problems where XLM-R replacement is longer/shorter than real text
+        if token == '1⁄2' and text[s:s + 1] == '½':
+            return s, s + 1
+        if token == '1⁄4' and text[s:s + 1] == '¼':
+            return s, s + 1
+        if token == '3⁄4' and text[s:s + 1] == '¾':
+            return s, s + 1
+        if token == '...' and text[s:s + 1] == '…':
+            return s, s + 1
+        if token == '...)' and text[s:s + 2] == '…)':
+            return s, s + 2
+        if token == '...).' and text[s:s + 3] == '…).':
+            return s, s + 3
+        if token == '"...' and text[s:s + 2] == '"…':
+            return s, s + 2
+        if token == '<unk>':
+            return s, s + 1
+        if token == 'Á' and text[s:s + 2] == 'Á':
+            return s, s + 2
+        if token == 'ñ' and text[s:s + 2] == 'ñ':
+            return s, s + 2
+        if token == 'É' and text[s:s + 2] == 'É':
+            return s, s + 2
+        if token == 'RÁ' and text[s:s + 3] == 'RÁ':
+            return s, s + 3
+        if token == 'Í' and text[s:s + 2] == 'Í':
+            return s, s + 2
+        if token == 'Ó' and text[s:s + 2] == 'Ó':
+            return s, s + 2
+        if token == 'è' and text[s:s + 2] == 'è':
+            return s, s + 2
+        if token == 'Ú' and text[s:s + 2] == 'Ú':
+            return s, s + 2
+        if '™' in text[s - 1:] and token == text.replace('™', 'TM')[s:s + l]:
+            return s, s + l - 1
+        if 'ŀ' in text[s - 1:] and token == text.replace('ŀ', 'l·')[s:s + l]:
+            return s, s + l - 1
+
+    raise ValueError('No se ha podido machear el token: ' + token)
+
+
 def get_offsets(text,tokens,offset):
     #Consigue el offset del texto para una lista de tokens
     found =  []
     try:
         for token in tokens:
+            if token[0] == '_':
+                try:
+                    s1, e1 = get_indice_del_token(text,token,offset)
+                except:
+                    s1, e1 = len(text)+2, len(text)+3
 
+                try:
+                    s2, e2 = get_indice_del_token(text,token[1:],offset)
+                except:
+                    s2, e2 = len(text) + 2, len(text) + 3
+
+                if s1 <= s2:
+                    assert s1 <= len(text)
+                    found.append((s1,e1))
+                    offset = e1
+                else:
+                    assert s2 <= len(text)
+                    found.append((s2,e2))
+                    offset = e2
+
+            else:
+                s,e = get_indice_del_token(text,token,offset)
+                assert s <= len(text)
+                found.append((s,e))
+                offset = e
+
+    except:
+        raise ValueError("Problema de Tokenización")
+    return found
 
 
 def transformar_texto_a_conll(tokenizer,text_content,file_key='-'):
@@ -52,7 +145,7 @@ def transformar_texto_a_conll(tokenizer,text_content,file_key='-'):
         tokens = org_tokens[1:-1] #Quitar los tokens especiales
         if len(tokens) == 0:
             continue
-        offsets =
+        offsets = get_offsets(text_content, tokens, last_offset)
 
 def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
     #Esta función sirve para juntar todos los pasos en la tokenización del archivo
