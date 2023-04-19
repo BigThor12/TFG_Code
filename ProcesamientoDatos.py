@@ -233,6 +233,17 @@ def anadir_anotaciones_a_texto(document,annotations):
 
 
 
+def formato_conll(document):
+    #Pasamos a formato conll to_do el texto y las anotaciones
+    conll_content = []
+    for sentece in document:
+        for token in sentece:
+            labels = '\t'.join(token.labels)
+            fields = [str(t) for t in token]
+            columns = '\t'.join([fields[0],fields[0+1],fields[6+1],fields[7+1]])
+            conll_content.append(f'{columns}\t{labels}')
+        conll_content.append('')
+    return '\n'.join(conll_content)
 
 
 def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
@@ -246,8 +257,8 @@ def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
     nested_annotations, nested_level = separar_anotaciones_anidadas(annotations,args.max_anidacion)
     for n in range(args.max_anidación):
         anadir_anotaciones_a_texto(new_content,nested_annotations[n])
-    conll_file =
-    return
+    conll_file = formato_conll(new_content)
+    return conll_file
 
 
 def procesamiento_de_ficheros(files_path,out_path,tokenizer):
