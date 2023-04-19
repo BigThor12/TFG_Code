@@ -19,6 +19,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--train_files', type=str, default='Datos\\meddoplace_train_set\\training_set\\brat\\meddoplace_brat_train\\', help='Ruta de los archivos de entrenamiento (.ann y .txt)')
 parser.add_argument('--out_files', type=str, default='Datos\\Datos_tokenizados\\', help='Ruta donde se guardan los archivos tokenizados')
 parser.add_argument('--model', '-m', type=str, default='xlm-roberta-large', help='Path to/Name of huggingface model')
+parser.add_argument('--max_anidacion', type=int, default=1, help='Añade niveles de anidación')
 args = parser.parse_args()
 
 NEWLINE_TERM_REGEX = re.compile(r'(.*?\n)')
@@ -211,6 +212,29 @@ def separar_anotaciones_anidadas(annotations,max_level=0):
     return nested_annotations,nested_level
 
 
+def anadir_anotaciones_a_texto(document,annotations):
+    #En esta función juntamos las anotaciones con el texto, añadiendo la nomenclatura BIO
+    labels = ['O' for _ in range(document[-1][-1].end)]
+    for a in annotations:
+        labels[a.start] = 'B-' + a.type
+        for y in (a.start+1,a.end):
+            labels[y] = 'I-' + a.type
+
+    prev_ann = 't-1'
+    for sid, sentence in enumerate(document):
+        if sid == 0 #Comienzo del documento
+            for token in sentence:
+                assert token.text == '<DOCSTART>'
+                token.labels.append('O')
+
+        else:
+            for token in sentence:
+                token.labels.append(labels[token.start])
+
+
+
+
+
 def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
     #Esta función sirve para juntar todos los pasos en la tokenización del archivo
 
@@ -219,7 +243,10 @@ def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
 
     new_content = transformar_texto_a_conll(tokenizer,text_content,file_key)
     annotations = leer_anotaciones(ann_content)
-
+    nested_annotations, nested_level = separar_anotaciones_anidadas(annotations,args.max_anidacion)
+    for n in range(args.max_anidación):
+        anadir_anotaciones_a_texto(new_content,nested_annotations[n])
+    conll_file =
     return
 
 
