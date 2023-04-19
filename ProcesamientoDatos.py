@@ -179,6 +179,38 @@ def leer_anotaciones(ann_content):
     return annotations
 
 
+def separar_anotaciones_anidadas(annotations,max_level=0):
+
+    nested_annotations = {}
+    nested_level = 0
+
+    while len(annotations) > 0 and nested_level < max_level:
+        nested_annotations[nested_level] = []
+        eliminate = {}
+
+        for a1 in annotations:
+            for a2 in annotations:
+                if a1 is a2: #si son el mismo
+                    continue
+                if a2.start >= a1.end or a2.end <= a1.start: #si no se superponen
+                    continue
+                #Eliminamos la mas corta de las dos, ya que ya sabemos que estan anidadas
+                if a1.end - a1.start > a2.end - a1.start:
+                    eliminate[a2] = True
+                else:
+                    eliminate[a1] = True
+
+        nested_annotations[nested_level] = [a for a in annotations if a not in eliminate]
+        annotations = [a for a in annotations if a in eliminate]
+        nested_level += 1
+
+    nested_level = len(nested_annotations)
+    if nested_level < max_level:
+        for n in range(nested_level,max_level+1):
+            nested_annotations[n] = [n]
+    return nested_annotations,nested_level
+
+
 def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
     #Esta función sirve para juntar todos los pasos en la tokenización del archivo
 
