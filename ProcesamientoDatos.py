@@ -22,8 +22,11 @@ parser.add_argument('--model', '-m', type=str, default='xlm-roberta-large', help
 args = parser.parse_args()
 
 NEWLINE_TERM_REGEX = re.compile(r'(.*?\n)')
+#Grupo 1: id de la anotacion; Grupo 2: tipo; Grupo 3: start; Grupo 4: end; Grupo 5: texto al que hace referencia
 T_ANNOTATION_REGEX = re.compile(r'(T\d+)\s+(\S*?)\s(\d+)\s(\d+)\s(.*)', re.MULTILINE)
+#Grupo 1: id (Ax); Grupo 2: tipo; Grupo 3: id de la anotacion a la que hace referencia
 A_ANNOTATION_REGEX = re.compile(r'(A\d+)\s+(\S*?)\s(T\d+)', re.MULTILINE)
+#Grupo 1: id (#x); Grupo 2: "AnnotatorNotes"; Grupo 3: id de la anotacion a la que hace referencia; Grupo 4: tipo; Grupo 5: id numerico
 H_ANNOTATION_REGEX = re.compile(r'(#\d+)\s(\S*?)\s(T\d+)\s(\S*?):(\d+)', re.MULTILINE)
 
 def leer_archivo(txt_file):
@@ -162,6 +165,19 @@ def transformar_texto_a_conll(tokenizer,text_content,file_key='-'):
     return content
 
 
+def leer_anotaciones(ann_content):
+    #Lee las anotacions de un documento de anotaciones
+    annotations = []
+    for a in T_ANNOTATION_REGEX.finditer(ann_content):
+        ann_id = a.group(1)
+        ann_type = a.group(2)
+        ann_begin = int(a.group(3))
+        ann_end = int(a.group(4))
+        ann_text = a.group(5)
+        annotations.append(Annotation(ann_id,ann_type,ann_begin,ann_end,ann_text))
+
+    return annotations
+
 
 def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
     #Esta función sirve para juntar todos los pasos en la tokenización del archivo
@@ -170,7 +186,7 @@ def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
     ann_content = leer_archivo(ann_file)
 
     new_content = transformar_texto_a_conll(tokenizer,text_content,file_key)
-    #annotations
+    annotations = leer_anotaciones(ann_content)
 
     return
 
@@ -203,3 +219,4 @@ if __name__ == '__main__':
     #print(args.train_files)
     #print(args.out_files)
     procesamiento_de_ficheros(args.train_files,args.out_files,hf_tokenizer)
+    #test_files
