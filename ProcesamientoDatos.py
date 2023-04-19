@@ -6,9 +6,10 @@ import argparse
 import os
 import re
 from transformers import AutoTokenizer
+from tqdm import tqdm
 
 from sentencesplit import sentencebreaks_to_newlines
-NEWLINE_TERM_REGEX = re.compile(r'(.*?\n)')
+
 
 from collections import namedtuple
 Token = namedtuple('Token','encID text lema pos file_key sent_id token_id start end labels')
@@ -19,6 +20,11 @@ parser.add_argument('--train_files', type=str, default='Datos\\meddoplace_train_
 parser.add_argument('--out_files', type=str, default='Datos\\Datos_tokenizados\\', help='Ruta donde se guardan los archivos tokenizados')
 parser.add_argument('--model', '-m', type=str, default='xlm-roberta-large', help='Path to/Name of huggingface model')
 args = parser.parse_args()
+
+NEWLINE_TERM_REGEX = re.compile(r'(.*?\n)')
+T_ANNOTATION_REGEX = re.compile(r'(T\d+)\s+(\S*?)\s(\d+)\s(\d+)\s(.*)', re.MULTILINE)
+A_ANNOTATION_REGEX = re.compile(r'(A\d+)\s+(\S*?)\s(T\d+)', re.MULTILINE)
+H_ANNOTATION_REGEX = re.compile(r'(#\d+)\s(\S*?)\s(T\d+)\s(\S*?):(\d+)', re.MULTILINE)
 
 def leer_archivo(txt_file):
     #Función para leer el contenido de un archivo txt
@@ -164,8 +170,9 @@ def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
     ann_content = leer_archivo(ann_file)
 
     new_content = transformar_texto_a_conll(tokenizer,text_content,file_key)
+    #annotations
 
-    #return
+    return
 
 
 def procesamiento_de_ficheros(files_path,out_path,tokenizer):
@@ -174,10 +181,19 @@ def procesamiento_de_ficheros(files_path,out_path,tokenizer):
     ann_files = sorted([files_path + x for x in os.listdir(files_path) if x.endswith('.ann')])
     txt_files = sorted([files_path + x for x in os.listdir(files_path) if x.endswith('.txt')])
 
+    t = tqdm(total=len(ann_files))
+    num_proc = 0
     for ann_file, txt_file in zip(ann_files,txt_files):
         file_key = txt_file.split("\\")[-1][:-4]
         #print(file_key)
         conll_format_file = tokenizacion_del_archivo(ann_file,txt_file,tokenizer,file_key)
+
+        with open(out_path + file_key + '.bio', 'w') as f:
+            f.write(conll_format_file)
+
+        num_proc += 1
+        t.update()
+
 
 
 if __name__ == '__main__':
