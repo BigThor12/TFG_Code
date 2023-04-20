@@ -222,7 +222,7 @@ def anadir_anotaciones_a_texto(document,annotations):
 
     prev_ann = 't-1'
     for sid, sentence in enumerate(document):
-        if sid == 0 #Comienzo del documento
+        if sid == 0:  #Comienzo del documento
             for token in sentence:
                 assert token.text == '<DOCSTART>'
                 token.labels.append('O')
@@ -255,7 +255,7 @@ def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
     new_content = transformar_texto_a_conll(tokenizer,text_content,file_key)
     annotations = leer_anotaciones(ann_content)
     nested_annotations, nested_level = separar_anotaciones_anidadas(annotations,args.max_anidacion)
-    for n in range(args.max_anidación):
+    for n in range(args.max_anidacion):
         anadir_anotaciones_a_texto(new_content,nested_annotations[n])
     conll_file = formato_conll(new_content)
     return conll_file
@@ -274,7 +274,7 @@ def procesamiento_de_ficheros(files_path,out_path,tokenizer):
         #print(file_key)
         conll_format_file = tokenizacion_del_archivo(ann_file,txt_file,tokenizer,file_key)
 
-        with open(out_path + file_key + '.bio', 'w') as f:
+        with open(out_path + file_key + '.bio', 'w', encoding="utf-16") as f:
             f.write(conll_format_file)
 
         num_proc += 1
