@@ -24,3 +24,6 @@ args = parser.parse_args()
 tag_type = args.tag_type
 
 colums = {0: 'text', 1: "decoded_text", 2: 'begin', 3: 'end', 4: tag_type}
+corpus = ColumnCorpus(
+
+)

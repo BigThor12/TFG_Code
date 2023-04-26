@@ -196,7 +196,7 @@ def separar_anotaciones_anidadas(annotations,max_level=0):
                 if a2.start >= a1.end or a2.end <= a1.start: #si no se superponen
                     continue
                 #Eliminamos la mas corta de las dos, ya que ya sabemos que estan anidadas
-                if a1.end - a1.start > a2.end - a1.start:
+                if a1.end - a1.start > a2.end - a2.start:
                     eliminate[a2] = True
                 else:
                     eliminate[a1] = True
@@ -212,12 +212,15 @@ def separar_anotaciones_anidadas(annotations,max_level=0):
     return nested_annotations,nested_level
 
 
+
+
+
 def anadir_anotaciones_a_texto(document,annotations):
     #En esta función juntamos las anotaciones con el texto, añadiendo la nomenclatura BIO
     labels = ['O' for _ in range(document[-1][-1].end)]
     for a in annotations:
         labels[a.start] = 'B-' + a.type
-        for y in (a.start+1,a.end):
+        for y in range(a.start+1,a.end):
             labels[y] = 'I-' + a.type
 
     prev_ann = 't-1'
@@ -274,7 +277,7 @@ def procesamiento_de_ficheros(files_path,out_path,tokenizer):
         #print(file_key)
         conll_format_file = tokenizacion_del_archivo(ann_file,txt_file,tokenizer,file_key)
 
-        with open(out_path + file_key + '.bio', 'w', encoding="utf-16") as f:
+        with open(out_path + file_key + '.txt', 'w', encoding="utf-16") as f:
             f.write(conll_format_file)
 
         num_proc += 1
@@ -290,3 +293,5 @@ if __name__ == '__main__':
     #print(args.out_files)
     procesamiento_de_ficheros(args.train_files,args.out_files,hf_tokenizer)
     #test_files
+
+    #Separar en train, dev y test los train files. Juntar todos los contenidos de cada uno en un fichero txt -> https://medium.com/thecyphy/training-custom-ner-model-using-flair-df1f9ea9c762
