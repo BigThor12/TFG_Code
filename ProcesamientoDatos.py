@@ -215,13 +215,14 @@ def separar_anotaciones_anidadas(annotations,max_level=0):
 
 
 
-def anadir_anotaciones_a_texto(document,annotations):
+def anadir_anotaciones_a_texto(document,annotations,check_ann):
     #En esta función juntamos las anotaciones con el texto, añadiendo la nomenclatura BIO
     labels = ['O' for _ in range(document[-1][-1].end)]
-    for a in annotations:
-        labels[a.start] = 'B-' + a.type
-        for y in range(a.start+1,a.end):
-            labels[y] = 'I-' + a.type
+    if check_ann:
+        for a in annotations:
+            labels[a.start] = 'B-' + a.type
+            for y in range(a.start+1,a.end):
+                labels[y] = 'I-' + a.type
 
     prev_ann = 't-1'
     for sid, sentence in enumerate(document):
@@ -249,6 +250,12 @@ def formato_conll(document):
     return '\n'.join(conll_content)
 
 
+def comprobar_ann(annotations):
+    if len(annotations) != 0:
+        return True
+    else:
+        return False
+
 def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
     #Esta función sirve para juntar todos los pasos en la tokenización del archivo
 
@@ -257,9 +264,11 @@ def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
 
     new_content = transformar_texto_a_conll(tokenizer,text_content,file_key)
     annotations = leer_anotaciones(ann_content)
+    print(len(annotations))
+    check_ann = comprobar_ann(annotations)
     nested_annotations, nested_level = separar_anotaciones_anidadas(annotations,args.max_anidacion)
     for n in range(args.max_anidacion):
-        anadir_anotaciones_a_texto(new_content,nested_annotations[n])
+        anadir_anotaciones_a_texto(new_content,nested_annotations[n],check_ann)
     conll_file = formato_conll(new_content)
     return conll_file
 
@@ -274,7 +283,7 @@ def procesamiento_de_ficheros(files_path,out_path,tokenizer):
     num_proc = 0
     for ann_file, txt_file in zip(ann_files,txt_files):
         file_key = txt_file.split("\\")[-1][:-4]
-        #print(file_key)
+        print(file_key)
         conll_format_file = tokenizacion_del_archivo(ann_file,txt_file,tokenizer,file_key)
 
         with open(out_path + file_key + '.txt', 'w', encoding="utf-16") as f:
