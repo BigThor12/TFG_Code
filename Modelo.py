@@ -27,5 +27,8 @@ colums = {0: 'text', 1: "decoded_text", 2: 'begin', 3: 'end', 4: tag_type}
 
 corpus = ColumnCorpus(args.train_path, colums,
                       train_file= 'train_ready.txt',
-                      test_file= 'train_test_ready.txt'
+                      test_file= 'train_test_ready.txt',
+                      dev_file= 'train_test_ready.txt',
+                      tag_to_bioes=tag_type,
+                      document_separator_token='<DOCSTART>'
 )
