@@ -4,7 +4,10 @@
 
 import argparse
 import os
+import random
 import re
+import shutil
+
 from transformers import AutoTokenizer
 from tqdm import tqdm
 
@@ -17,9 +20,12 @@ Annotation = namedtuple('Annotation',['tid','type','start','end','text'])
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_files', type=str, default='Datos\\meddoplace_train_set\\training_set\\brat\\meddoplace_brat_train\\', help='Ruta de los archivos de entrenamiento (.ann y .txt)')
+parser.add_argument('--train_test_files', type=str, default='Datos\\Datos_tokenizados_train_test\\', help='Ruta de los archivos de entrenamiento (.ann y .txt)')
+parser.add_argument('--pruebas', type=str, default='Datos\\pruebas\\', help='Ruta donde se guardan los archivos de pruebas')
 parser.add_argument('--out_files', type=str, default='Datos\\Datos_tokenizados\\', help='Ruta donde se guardan los archivos tokenizados')
 parser.add_argument('--model', '-m', type=str, default='xlm-roberta-large', help='Path to/Name of huggingface model')
 parser.add_argument('--max_anidacion', type=int, default=1, help='Añade niveles de anidación')
+parser.add_argument('--num_test_files', type=int, default=40, help= 'Numero de ficheros de train que se reservan para test')
 args = parser.parse_args()
 
 NEWLINE_TERM_REGEX = re.compile(r'(.*?\n)')
@@ -39,7 +45,7 @@ def leer_archivo(txt_file):
 
 
 def get_indice_del_token(text,token,offset):
-    #Devuelve el el offset del texto para un token
+    #Devuelve el offset del texto para un token
     l = len(token)
 
     for s in range(offset, len(text)):
@@ -264,7 +270,7 @@ def tokenizacion_del_archivo(ann_file,text_file,tokenizer,file_key = '-'):
 
     new_content = transformar_texto_a_conll(tokenizer,text_content,file_key)
     annotations = leer_anotaciones(ann_content)
-    print(len(annotations))
+    #print(len(annotations))
     check_ann = comprobar_ann(annotations)
     nested_annotations, nested_level = separar_anotaciones_anidadas(annotations,args.max_anidacion)
     for n in range(args.max_anidacion):
@@ -283,7 +289,7 @@ def procesamiento_de_ficheros(files_path,out_path,tokenizer):
     num_proc = 0
     for ann_file, txt_file in zip(ann_files,txt_files):
         file_key = txt_file.split("\\")[-1][:-4]
-        print(file_key)
+        #print(file_key)
         conll_format_file = tokenizacion_del_archivo(ann_file,txt_file,tokenizer,file_key)
 
         with open(out_path + file_key + '.txt', 'w', encoding="utf-16") as f:
@@ -293,6 +299,13 @@ def procesamiento_de_ficheros(files_path,out_path,tokenizer):
         t.update()
 
 
+def move_random_files(or_path,new_path,cont):
+    for i in range(cont):
+        rd_file = random.choice(os.listdir(or_path))
+        source_file = or_path + rd_file
+        shutil.move(source_file,new_path)
+
+
 
 if __name__ == '__main__':
 
@@ -300,7 +313,8 @@ if __name__ == '__main__':
 
     #print(args.train_files)
     #print(args.out_files)
-    procesamiento_de_ficheros(args.train_files,args.out_files,hf_tokenizer)
-    #test_files
+    #procesamiento_de_ficheros(args.train_files,args.out_files,hf_tokenizer)
+    ###test_files
 
-    #Separar en train, dev y test los train files. Juntar todos los contenidos de cada uno en un fichero txt -> https://medium.com/thecyphy/training-custom-ner-model-using-flair-df1f9ea9c762
+    ###Separar en train, dev y test los train files. Juntar todos los contenidos de cada uno en un fichero txt -> https://medium.com/thecyphy/training-custom-ner-model-using-flair-df1f9ea9c762
+    move_random_files(args.out_files,args.train_test_files,)
