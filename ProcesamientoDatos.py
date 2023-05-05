@@ -23,6 +23,7 @@ parser.add_argument('--train_files', type=str, default='Datos\\meddoplace_train_
 parser.add_argument('--train_test_files', type=str, default='Datos\\Datos_tokenizados_train_test\\', help='Ruta de los archivos de entrenamiento (.ann y .txt)')
 parser.add_argument('--pruebas', type=str, default='Datos\\pruebas\\', help='Ruta donde se guardan los archivos de pruebas')
 parser.add_argument('--out_files', type=str, default='Datos\\Datos_tokenizados_train\\', help='Ruta donde se guardan los archivos tokenizados')
+parser.add_argument('--final_path', '-p', type=str, default='Datos\\Training_files\\')
 parser.add_argument('--model', '-m', type=str, default='xlm-roberta-large', help='Path to/Name of huggingface model')
 parser.add_argument('--max_anidacion', type=int, default=1, help='Añade niveles de anidación')
 parser.add_argument('--num_test_files', type=int, default=5, help= 'Numero de ficheros de train que se reservan para test')
@@ -306,10 +307,10 @@ def move_random_files(or_path,new_path,cont):
         shutil.move(source_file,new_path)
 
 
-def unir_ficheros_txt(path,name):
+def unir_ficheros_txt(path,final_path,name):
     files = os.listdir(path)
     content = ''
-    with open(path + name + '.txt', 'a',encoding="utf-16") as fout:
+    with open(final_path + name + '.txt', 'a',encoding="utf-16") as fout:
         for file in files:
             with open(path + file, 'r',encoding="utf-16") as fin_doc:
                 content = fin_doc.read()
@@ -327,5 +328,5 @@ if __name__ == '__main__':
 
     ###Separar en train, dev y test los train files. Juntar todos los contenidos de cada uno en un fichero txt -> https://medium.com/thecyphy/training-custom-ner-model-using-flair-df1f9ea9c762
     move_random_files(args.out_files,args.train_test_files,args.num_test_files)
-    unir_ficheros_txt(args.train_test_files,'train_test_ready')
-    unir_ficheros_txt(args.out_files,'train_ready')
+    unir_ficheros_txt(args.train_test_files,args.final_path,'train_test_ready')
+    unir_ficheros_txt(args.out_files,args.final_path,'train_ready')
