@@ -26,7 +26,7 @@ parser.add_argument('--out_files', type=str, default='Datos\\Datos_tokenizados_t
 parser.add_argument('--final_path', '-p', type=str, default='Datos\\Training_files\\')
 parser.add_argument('--model', '-m', type=str, default='xlm-roberta-large', help='Path to/Name of huggingface model')
 parser.add_argument('--max_anidacion', type=int, default=1, help='Añade niveles de anidación')
-parser.add_argument('--num_test_files', type=int, default=5, help= 'Numero de ficheros de train que se reservan para test')
+parser.add_argument('--num_test_files', type=int, default=40, help= 'Numero de ficheros de train que se reservan para test')
 args = parser.parse_args()
 
 NEWLINE_TERM_REGEX = re.compile(r'(.*?\n)')
