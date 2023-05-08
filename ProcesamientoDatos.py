@@ -156,7 +156,7 @@ def transformar_texto_a_conll(tokenizer,text_content,file_key='-'):
     content = [[Token('<DOCSTART>', '<DOCSTART>', '-x-', '-y-', file_key, -1, -1, 0, 0, [])]]
     last_offset = 0
     for s_id, s in enumerate(sentences):
-        enc = tokenizer.encode(s)
+        enc = tokenizer.encode(s,max_length= 512)
         org_tokens = tokenizer.convert_ids_to_tokens(enc)
         if len(org_tokens) == 0:
             continue
